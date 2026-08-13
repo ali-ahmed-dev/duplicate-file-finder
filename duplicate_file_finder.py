@@ -108,6 +108,17 @@ def generate_report(
                 print("    ", f)
 
     print(SUMMARY_HEADER)
+    duplicate_groups = sum(
+        1 for group in files_by_hash.values() if len(group) > 1
+    )
+    duplicate_files = sum(
+        len(group) for group in files_by_hash.values() if len(group) > 1
+    )
+    percentage = (duplicate_files / len(files) * 100) if files else 0
+
+    print("Duplicate groups:", duplicate_groups)
+    print("Duplicate files:", duplicate_files)
+    print("Percentage duplicated:", f"{percentage:.2f}%")
     print(FOOTER)
 
 
