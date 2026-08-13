@@ -24,8 +24,11 @@ def scan_folder(folder_path: Path) -> list[Path]:
     """
     files = []
     for file in folder_path.rglob("*"):
-        if file.is_file():
-            files.append(file)
+        try:
+            if file.is_file():
+                files.append(file)
+        except OSError:
+            continue
     return files
 
 
@@ -41,11 +44,11 @@ def get_file_size(files: list[Path]) -> dict[int, list[Path]]:
     """
     files_by_size = {}
     for file in files:
-        size = file.stat().st_size
-        if size in files_by_size:
-            files_by_size[size].append(file)
-        else:
-            files_by_size[size] = [file]
+        try:
+            size = file.stat().st_size
+        except OSError:
+            continue
+        files_by_size.setdefault(size, []).append(file)
     return files_by_size
 
 
@@ -61,17 +64,18 @@ def get_file_hash(files_by_size: dict[int, list[Path]]) -> dict[str, list[Path]]
     """
     files_by_hash = {}
     for size, files in files_by_size.items():
-        if len(files) > 1:
-            for file in files:
+        if len(files) <= 1:
+            continue
+        for file in files:
+            try:
                 hash_obj = hashlib.sha256()
                 with open(file, "rb") as f:
                     for chunk in iter(lambda: f.read(4096), b""):
                         hash_obj.update(chunk)
                 file_hash = hash_obj.hexdigest()
-                if file_hash in files_by_hash:
-                    files_by_hash[file_hash].append(file)
-                else:
-                    files_by_hash[file_hash] = [file]
+                files_by_hash.setdefault(file_hash, []).append(file)
+            except OSError:
+                continue
     return files_by_hash
 
 
@@ -101,11 +105,16 @@ def generate_report(
     print("Potential duplicate groups by size:", potential_duplicates)
 
     print("\n--- Duplicate Files by Hash ---")
+    has_duplicates = False
     for file_hash, dup_files in files_by_hash.items():
         if len(dup_files) > 1:
+            has_duplicates = True
             print("Hash:", file_hash)
             for f in dup_files:
                 print("    ", f)
+
+    if not has_duplicates:
+        print("No duplicate files found.")
 
     print(SUMMARY_HEADER)
     duplicate_groups = sum(
@@ -125,13 +134,29 @@ def generate_report(
 def main() -> None:
     """Run the duplicate file finder."""
     path_input = input("Enter the folder path:\n").strip()
+
+    if not path_input:
+        print("Error: No path provided.")
+        return
+
     folder = Path(path_input)
+
+    if not folder.exists():
+        print("Error: The provided path does not exist.")
+        return
 
     if not folder.is_dir():
         print("Error: The provided path is not a valid directory.")
         return
 
     files = scan_folder(folder)
+
+    if not files:
+        print(HEADER)
+        print("No files found in the specified folder.")
+        print(FOOTER)
+        return
+
     files_by_size = get_file_size(files)
     files_by_hash = get_file_hash(files_by_size)
     generate_report(files, files_by_size, files_by_hash)
