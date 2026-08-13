@@ -3,7 +3,13 @@ Duplicate File Finder - Scan a folder and detect duplicates by size and hash.
 """
 
 import hashlib
+import datetime
 from pathlib import Path
+
+
+HEADER = "=" * 50 + "\n                 DUPLICATE FILE FINDER\n" + "=" * 50
+FOOTER = "=" * 50 + "\n                 END OF REPORT\n" + "=" * 50
+SUMMARY_HEADER = "-" * 50 + "\n                 SUMMARY REPORT\n" + "-" * 50
 
 
 def scan_folder(folder_path: Path) -> list[Path]:
@@ -69,6 +75,34 @@ def get_file_hash(files_by_size: dict[int, list[Path]]) -> dict[str, list[Path]]
     return files_by_hash
 
 
+def generate_report(
+    files: list[Path],
+    files_by_size: dict[int, list[Path]],
+    files_by_hash: dict[str, list[Path]]
+) -> None:
+    """
+    Generate and print the duplicate file report.
+
+    Args:
+        files (list[Path]): All scanned files.
+        files_by_size (dict[int, list[Path]]): Files grouped by size.
+        files_by_hash (dict[str, list[Path]]): Files grouped by hash.
+    """
+    print(HEADER)
+    print("Scan Date:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print("Total files scanned:", len(files))
+
+    print("\n--- Duplicate Files by Hash ---")
+    for file_hash, dup_files in files_by_hash.items():
+        if len(dup_files) > 1:
+            print("Hash:", file_hash)
+            for f in dup_files:
+                print("    ", f)
+
+    print(SUMMARY_HEADER)
+    print(FOOTER)
+
+
 def main() -> None:
     """Run the duplicate file finder."""
     path_input = input("Enter the folder path:\n").strip()
@@ -81,21 +115,7 @@ def main() -> None:
     files = scan_folder(folder)
     files_by_size = get_file_size(files)
     files_by_hash = get_file_hash(files_by_size)
-
-    print(f"Total files found: {len(files)}")
-    print(f"Unique file sizes: {len(files_by_size)}")
-
-    potential_duplicates = sum(
-        1 for group in files_by_size.values() if len(group) > 1
-    )
-    print(f"Potential duplicate groups by size: {potential_duplicates}")
-
-    print("\n--- Duplicate Files by Hash ---")
-    for file_hash, dup_files in files_by_hash.items():
-        if len(dup_files) > 1:
-            print(f"Hash: {file_hash}")
-            for f in dup_files:
-                print(f"    {f}")
+    generate_report(files, files_by_size, files_by_hash)
 
 
 if __name__ == "__main__":
