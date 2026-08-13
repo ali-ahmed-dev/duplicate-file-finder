@@ -1,5 +1,10 @@
 """
-Duplicate File Finder - Scan a folder and detect duplicates by size and hash.
+Duplicate File Finder
+
+A simple tool that scans a folder recursively and detects duplicate files
+by comparing file size first, then SHA-256 hash to confirm exact matches.
+
+This is an educational project built with Python's standard library only.
 """
 
 import hashlib
@@ -14,6 +19,7 @@ FOOTER = "=" * 50 + "\n                 END OF REPORT\n" + "=" * 50
 SUMMARY_HEADER = "-" * 50 + "\n                 SUMMARY REPORT\n" + "-" * 50
 
 
+# ===================== FILE DISCOVERY =====================
 def scan_folder(folder_path: Path) -> list[Path]:
     """
     Recursively scan a folder and return all files.
@@ -34,6 +40,7 @@ def scan_folder(folder_path: Path) -> list[Path]:
     return files
 
 
+# ===================== SIZE GROUPING =====================
 def get_file_size(files: list[Path]) -> dict[int, list[Path]]:
     """
     Group files by their size in bytes.
@@ -54,6 +61,7 @@ def get_file_size(files: list[Path]) -> dict[int, list[Path]]:
     return files_by_size
 
 
+# ===================== HASH CALCULATION =====================
 def calculate_file_hash(file: Path) -> str | None:
     """
     Calculate the SHA-256 hash of a file.
@@ -96,6 +104,7 @@ def get_file_hash(files_by_size: dict[int, list[Path]]) -> dict[str, list[Path]]
     return files_by_hash
 
 
+# ===================== REPORT GENERATION =====================
 def generate_report(
     files: list[Path],
     files_by_size: dict[int, list[Path]],
@@ -148,8 +157,11 @@ def generate_report(
     print(FOOTER)
 
 
+# ===================== MAIN =====================
 def main() -> None:
     """Run the duplicate file finder."""
+    print("Welcome to the Duplicate File Finder!")
+
     path_input = input("Enter the folder path:\n").strip()
 
     if not path_input:
@@ -165,6 +177,8 @@ def main() -> None:
     if not folder.is_dir():
         print("Error: The provided path is not a valid directory.")
         return
+
+    print(f"\nScanning: {folder}\n")
 
     files = scan_folder(folder)
 
