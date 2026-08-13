@@ -7,6 +7,8 @@ import datetime
 from pathlib import Path
 
 
+# ===================== CONSTANTS =====================
+CHUNK_SIZE = 4096
 HEADER = "=" * 50 + "\n                 DUPLICATE FILE FINDER\n" + "=" * 50
 FOOTER = "=" * 50 + "\n                 END OF REPORT\n" + "=" * 50
 SUMMARY_HEADER = "-" * 50 + "\n                 SUMMARY REPORT\n" + "-" * 50
@@ -52,6 +54,26 @@ def get_file_size(files: list[Path]) -> dict[int, list[Path]]:
     return files_by_size
 
 
+def calculate_file_hash(file: Path) -> str | None:
+    """
+    Calculate the SHA-256 hash of a file.
+
+    Args:
+        file (Path): The file to hash.
+
+    Returns:
+        str | None: The hexadecimal hash, or None if the file cannot be read.
+    """
+    try:
+        hash_obj = hashlib.sha256()
+        with open(file, "rb") as f:
+            for chunk in iter(lambda: f.read(CHUNK_SIZE), b""):
+                hash_obj.update(chunk)
+        return hash_obj.hexdigest()
+    except OSError:
+        return None
+
+
 def get_file_hash(files_by_size: dict[int, list[Path]]) -> dict[str, list[Path]]:
     """
     Calculate SHA-256 hashes for files with matching sizes to confirm duplicates.
@@ -67,15 +89,10 @@ def get_file_hash(files_by_size: dict[int, list[Path]]) -> dict[str, list[Path]]
         if len(files) <= 1:
             continue
         for file in files:
-            try:
-                hash_obj = hashlib.sha256()
-                with open(file, "rb") as f:
-                    for chunk in iter(lambda: f.read(4096), b""):
-                        hash_obj.update(chunk)
-                file_hash = hash_obj.hexdigest()
-                files_by_hash.setdefault(file_hash, []).append(file)
-            except OSError:
+            file_hash = calculate_file_hash(file)
+            if file_hash is None:
                 continue
+            files_by_hash.setdefault(file_hash, []).append(file)
     return files_by_hash
 
 
