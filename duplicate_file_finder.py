@@ -92,6 +92,14 @@ def generate_report(
     print("Scan Date:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     print("Total files scanned:", len(files))
 
+    total_size = sum(file.stat().st_size for file in files)
+    print("Total size:", total_size, "bytes")
+
+    potential_duplicates = sum(
+        1 for group in files_by_size.values() if len(group) > 1
+    )
+    print("Potential duplicate groups by size:", potential_duplicates)
+
     print("\n--- Duplicate Files by Hash ---")
     for file_hash, dup_files in files_by_hash.items():
         if len(dup_files) > 1:
