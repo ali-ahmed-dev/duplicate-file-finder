@@ -8,12 +8,14 @@ This is an educational project built with Python's standard library only.
 """
 
 import hashlib
-import datetime
+from datetime import datetime
 from pathlib import Path
 
 
 # ===================== CONSTANTS =====================
 CHUNK_SIZE = 4096
+IGNORE_DIRS = {".git", "__pycache__", ".venv", "venv", "env", "node_modules"}
+
 HEADER = "=" * 50 + "\n                 DUPLICATE FILE FINDER\n" + "=" * 50
 FOOTER = "=" * 50 + "\n                 END OF REPORT\n" + "=" * 50
 SUMMARY_HEADER = "-" * 50 + "\n                 SUMMARY REPORT\n" + "-" * 50
@@ -24,16 +26,20 @@ def scan_folder(folder_path: Path) -> list[Path]:
     """
     Recursively scan a folder and return all files.
 
+    Skips hidden/system directories, symlinks, and unreadable files.
+
     Args:
         folder_path (Path): The folder path to scan.
 
     Returns:
-        list[Path]: A list of all file paths.
+        list[Path]: A list of all valid file paths.
     """
     files = []
     for file in folder_path.rglob("*"):
+        if any(part in IGNORE_DIRS for part in file.parts):
+            continue
         try:
-            if file.is_file():
+            if file.is_file() and not file.is_symlink():
                 files.append(file)
         except OSError:
             continue
@@ -44,6 +50,8 @@ def scan_folder(folder_path: Path) -> list[Path]:
 def get_file_size(files: list[Path]) -> dict[int, list[Path]]:
     """
     Group files by their size in bytes.
+
+    Empty files (size 0) are skipped because they are not meaningful duplicates.
 
     Args:
         files (list[Path]): The list of files to group.
@@ -56,6 +64,8 @@ def get_file_size(files: list[Path]) -> dict[int, list[Path]]:
         try:
             size = file.stat().st_size
         except OSError:
+            continue
+        if size == 0:
             continue
         files_by_size.setdefault(size, []).append(file)
     return files_by_size
@@ -105,6 +115,25 @@ def get_file_hash(files_by_size: dict[int, list[Path]]) -> dict[str, list[Path]]
 
 
 # ===================== REPORT GENERATION =====================
+def calculate_total_size(files: list[Path]) -> int:
+    """
+    Calculate the total size of all files in bytes.
+
+    Args:
+        files (list[Path]): The list of files.
+
+    Returns:
+        int: Total size in bytes, or 0 if no files could be read.
+    """
+    total = 0
+    for file in files:
+        try:
+            total += file.stat().st_size
+        except OSError:
+            continue
+    return total
+
+
 def generate_report(
     files: list[Path],
     files_by_size: dict[int, list[Path]],
@@ -119,10 +148,10 @@ def generate_report(
         files_by_hash (dict[str, list[Path]]): Files grouped by hash.
     """
     print(HEADER)
-    print("Scan Date:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print("Scan Date:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     print("Total files scanned:", len(files))
 
-    total_size = sum(file.stat().st_size for file in files)
+    total_size = calculate_total_size(files)
     print("Total size:", total_size, "bytes")
 
     potential_duplicates = sum(
@@ -143,16 +172,31 @@ def generate_report(
         print("No duplicate files found.")
 
     print(SUMMARY_HEADER)
+
+    # Count of duplicate groups
     duplicate_groups = sum(
         1 for group in files_by_hash.values() if len(group) > 1
     )
+
+    # Count of extra copies (each group contributes len(group) - 1)
     duplicate_files = sum(
-        len(group) for group in files_by_hash.values() if len(group) > 1
+        len(group) - 1 for group in files_by_hash.values() if len(group) > 1
     )
+
+    # Wasted space
+    wasted_size = 0
+    for group in files_by_hash.values():
+        if len(group) > 1:
+            try:
+                wasted_size += group[0].stat().st_size * (len(group) - 1)
+            except OSError:
+                continue
+
     percentage = (duplicate_files / len(files) * 100) if files else 0
 
     print("Duplicate groups:", duplicate_groups)
-    print("Duplicate files:", duplicate_files)
+    print("Duplicate files (extra copies):", duplicate_files)
+    print("Wasted space:", wasted_size, "bytes")
     print("Percentage duplicated:", f"{percentage:.2f}%")
     print(FOOTER)
 
@@ -162,7 +206,14 @@ def main() -> None:
     """Run the duplicate file finder."""
     print("Welcome to the Duplicate File Finder!")
 
-    path_input = input("Enter the folder path:\n").strip()
+    try:
+        path_input = input("Enter the folder path:\n").strip()
+    except EOFError:
+        print("Error: No input received.")
+        return
+
+    # Remove surrounding quotes if present
+    path_input = path_input.strip('"').strip("'")
 
     if not path_input:
         print("Error: No path provided.")
