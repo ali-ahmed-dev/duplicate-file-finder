@@ -1,14 +1,13 @@
 # Duplicate File Finder
 
-A Python tool that scans folders recursively and detects duplicate files by comparing file size first, then SHA-256 hash to confirm exact matches.
+A Python CLI tool that scans folders recursively and detects duplicate files by comparing file size first, then SHA-256 hash to confirm exact matches.
 
-This project was created as an **educational project** to practice file system traversal, hashing, and report generation.
+Built with Python's standard library, with a focus on **reliability, memory efficiency, and safe file analysis**.
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-14%20Passed-brightgreen)
-![Version](https://img.shields.io/badge/Version-1.0.1-orange)
-![Educational](https://img.shields.io/badge/Project-Educational-purple)
+![Version](https://img.shields.io/badge/Version-1.1.0-orange)
 
 ---
 
@@ -17,7 +16,7 @@ This project was created as an **educational project** to practice file system t
 * Recursively scan a folder for all files.
 * Group files by size to narrow down potential duplicates.
 * Confirm duplicates using SHA-256 hashing.
-* Skip empty files, symlinks, and common system directories (`.git`, `__pycache__`, etc.).
+* Skip empty files, symlinks, and common system directories (`.git`, `__pycache__`, `.venv`, `venv`, `env`, `node_modules`).
 * Detailed report including:
   * Total files scanned.
   * Total size in bytes.
@@ -28,31 +27,41 @@ This project was created as an **educational project** to practice file system t
   * Wasted disk space.
   * Percentage duplicated.
 * Graceful handling of edge cases (empty folders, permission errors, invalid paths).
+* Command-line interface (CLI) powered by `argparse`.
+* Version flag (`--version`).
 * Type hints and comprehensive docstrings.
 * 14 unit tests covering all core functionality.
 * Uses only Python's **standard library**.
 
 ---
 
-## 🧠 Educational Purpose
+## 🧠 How It Works
 
-The main purpose of this project is to practice and demonstrate several Python concepts in a small, complete application.
+The tool uses a two-stage detection strategy to avoid unnecessary hashing:
 
-### Concepts practiced
+```text
+Input Folder
+     │
+     ▼
+Scan Files (recursive)
+     │
+     ▼
+Group by Size
+     │
+     ▼
+For Groups > 1:
+     │
+     ▼
+Calculate SHA-256
+     │
+     ▼
+Group by Hash
+     │
+     ▼
+Generate Report
+```
 
-* Recursive folder traversal with `pathlib`
-* File metadata (size) inspection
-* SHA-256 hashing with `hashlib`
-* Chunk-based file reading for memory efficiency
-* Dictionary grouping with `setdefault`
-* Exception handling (`OSError`)
-* Symlink and system directory filtering
-* Report generation
-* Unit testing with `unittest`
-* Type hints and docstrings
-* Git and GitHub workflow
-
-The project also demonstrates how a simple application can evolve through multiple development stages instead of being written as one large final version.
+**Why two stages?** Files with different sizes can never be duplicates. By grouping by size first, we only hash files that could actually be duplicates — saving significant processing time.
 
 ---
 
@@ -66,34 +75,72 @@ The project also demonstrates how a simple application can evolve through multip
 
     cd duplicate-file-finder
 
-### 3. Run the application
+### 3. Run the tool
 
-    python duplicate_file_finder.py
+    python duplicate_file_finder.py /path/to/folder
 
-Then enter the folder path when prompted.
+**Windows example:**
 
-Example output:
+    python duplicate_file_finder.py "C:\Users\Username\Documents"
+
+**Git Bash example:**
+
+    python duplicate_file_finder.py /c/Users/Username/Documents
+
+---
+
+## Command-Line Options
+
+| Option | Description |
+| :--- | :--- |
+| `folder` | (Required) Path to the folder to scan. |
+| `--version` | Display the current version and exit. |
+| `-h`, `--help` | Display the help message and exit. |
+
+---
+
+## Examples
+
+### Scan a folder
+
+    python duplicate_file_finder.py /path/to/folder
+
+### Scan the current directory
+
+    python duplicate_file_finder.py .
+
+### Display help
+
+    python duplicate_file_finder.py --help
+
+### Display version
+
+    python duplicate_file_finder.py --version
+
+---
+
+## Example Output
 
     ==================================================
                      DUPLICATE FILE FINDER
     ==================================================
-    Scan Date: 2026-08-17 14:23:18
-    Total files scanned: 42
-    Total size: 15234567 bytes
-    Potential duplicate groups by size: 3
+    Scan Date: 2026-09-16 02:32:52
+    Total files scanned: 10
+    Total size: 334905027 bytes
+    Potential duplicate groups by size: 2
 
     --- Duplicate Files by Hash ---
-    Hash: a3f5b2c8...
-        /path/to/photo1.jpg
-        /path/to/photo1_copy.jpg
+    Hash: 398882beb89df4eb05ee3f804090d6a583c39778ff4983336570905f924d3113
+         /path/to/battery-report.html
+         /path/to/copy-of-battery-report.html
 
     --------------------------------------------------
                      SUMMARY REPORT
     --------------------------------------------------
     Duplicate groups: 2
-    Duplicate files (extra copies): 3
-    Wasted space: 2456789 bytes
-    Percentage duplicated: 7.14%
+    Duplicate files (extra copies): 2
+    Wasted space: 160630492 bytes
+    Percentage duplicated: 20.00%
     ==================================================
                      END OF REPORT
     ==================================================
@@ -154,14 +201,16 @@ The application uses only Python's standard library.
 
 ## 📜 Version
 
-**Current Version: 1.0.1**
+**Current Version: 1.1.0**
 
 This version includes:
 
 * Recursive folder scanning.
 * Size-based grouping.
 * SHA-256 duplicate confirmation.
-* Detailed report with summary and percentages.
+* Command-line interface with `argparse`.
+* Version flag.
+* Detailed report with summary, wasted space, and percentages.
 * Edge case handling (empty folders, permission errors, invalid paths).
 * Skips empty files, symlinks, and common system directories.
 * 14 unit tests covering all core functionality.
@@ -201,6 +250,9 @@ The project was developed incrementally through separate Git commits over severa
             ↓
     test: add 14 unit tests covering core functionality
 
+    Day 12 (Aug 24):
+    feat: add CLI support with argparse and version flag
+
 This development history is intentionally preserved to show the actual evolution of the project.
 
 ---
@@ -209,12 +261,11 @@ This development history is intentionally preserved to show the actual evolution
 
 Potential future enhancements include:
 
-* Add CLI arguments using `argparse`
 * Export reports to JSON or CSV
-* Add colorized terminal output
 * Add option to safely delete duplicates (with confirmation and dry-run)
 * Add progress indicator for large folders
-* Support for excluding user-defined directories via CLI
+* Support excluding user-defined directories via CLI
+* Colorized terminal output
 
 ---
 
@@ -230,8 +281,16 @@ Always review the report carefully before taking manual action.
 
 This project is licensed under the **MIT License**.
 
-See the `LICENSE` file for details.
+See the [`LICENSE`](LICENSE) file for details.
 
 ---
 
-**Built as part of my Python learning journey.**
+## Author
+
+**Ali Ahmed**
+
+GitHub: https://github.com/ali-ahmed-dev
+
+---
+
+**Part of the File Management Tools collection.**
