@@ -1,3 +1,4 @@
+
 # Duplicate File Finder
 
 A Python CLI tool that scans folders recursively and detects duplicate files by comparing file size first, then SHA-256 hash to confirm exact matches.
@@ -7,7 +8,7 @@ Built with Python's standard library, with a focus on **reliability, memory effi
 ![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-14%20Passed-brightgreen)
-![Version](https://img.shields.io/badge/Version-1.1.0-orange)
+![Version](https://img.shields.io/badge/Version-1.2.0-orange)
 
 ---
 
@@ -17,7 +18,7 @@ Built with Python's standard library, with a focus on **reliability, memory effi
 * Group files by size to narrow down potential duplicates.
 * Confirm duplicates using SHA-256 hashing.
 * Skip empty files, symlinks, and common system directories (`.git`, `__pycache__`, `.venv`, `venv`, `env`, `node_modules`).
-* Detailed report including:
+* Detailed terminal report including:
   * Total files scanned.
   * Total size in bytes.
   * Potential duplicate groups by size.
@@ -26,6 +27,8 @@ Built with Python's standard library, with a focus on **reliability, memory effi
   * Extra copies count.
   * Wasted disk space.
   * Percentage duplicated.
+* **JSON report export** (`--json`) for automation and integration.
+* **Custom output directory** (`--output`) for generated JSON reports.
 * Graceful handling of edge cases (empty folders, permission errors, invalid paths).
 * Command-line interface (CLI) powered by `argparse`.
 * Version flag (`--version`).
@@ -59,6 +62,9 @@ Group by Hash
      │
      ▼
 Generate Report
+     │
+     ├── Terminal
+     └── JSON (optional)
 ```
 
 **Why two stages?** Files with different sizes can never be duplicates. By grouping by size first, we only hash files that could actually be duplicates — saving significant processing time.
@@ -94,6 +100,8 @@ Generate Report
 | Option | Description |
 | :--- | :--- |
 | `folder` | (Required) Path to the folder to scan. |
+| `--json` | Export the report as a JSON file. |
+| `-o`, `--output` | Directory to save the JSON report (default: current directory; requires `--json`). |
 | `--version` | Display the current version and exit. |
 | `-h`, `--help` | Display the help message and exit. |
 
@@ -109,6 +117,14 @@ Generate Report
 
     python duplicate_file_finder.py .
 
+### Scan and export a JSON report
+
+    python duplicate_file_finder.py /path/to/folder --json
+
+### Scan and save the JSON report to a custom directory
+
+    python duplicate_file_finder.py /path/to/folder --json --output ./reports
+
 ### Display help
 
     python duplicate_file_finder.py --help
@@ -121,29 +137,67 @@ Generate Report
 
 ## Example Output
 
-    ==================================================
-                     DUPLICATE FILE FINDER
-    ==================================================
-    Scan Date: 2026-09-16 02:32:52
-    Total files scanned: 10
-    Total size: 334905027 bytes
-    Potential duplicate groups by size: 2
+### Terminal Report
 
-    --- Duplicate Files by Hash ---
-    Hash: 398882beb89df4eb05ee3f804090d6a583c39778ff4983336570905f924d3113
-         /path/to/battery-report.html
-         /path/to/copy-of-battery-report.html
+```
+==================================================
+                 DUPLICATE FILE FINDER
+==================================================
+Scan Date: 2026-08-28 21:30:15
+Total files scanned: 10
+Total size: 334905027 bytes
+Potential duplicate groups by size: 1
 
-    --------------------------------------------------
-                     SUMMARY REPORT
-    --------------------------------------------------
-    Duplicate groups: 2
-    Duplicate files (extra copies): 2
-    Wasted space: 160630492 bytes
-    Percentage duplicated: 20.00%
-    ==================================================
-                     END OF REPORT
-    ==================================================
+--- Duplicate Files by Hash ---
+Hash: 398882beb89df4eb05ee3f804090d6a583c39778ff4983336570905f924d3113
+     /path/to/battery-report.html
+     /path/to/copy-of-battery-report.html
+
+--------------------------------------------------
+                 SUMMARY REPORT
+--------------------------------------------------
+Duplicate groups: 1
+Duplicate files (extra copies): 1
+Wasted space: 80315246 bytes
+Percentage duplicated: 10.00%
+==================================================
+                 END OF REPORT
+==================================================
+```
+
+### JSON Report
+
+When `--json` is used, a timestamped JSON file is generated with the following structure:
+
+```json
+{
+    "scan_date": "2026-08-28 21:30:15",
+    "folder": "/path/to/folder",
+    "total_files": 10,
+    "total_size_bytes": 334905027,
+    "potential_duplicate_groups": 1,
+    "duplicate_groups": 1,
+    "duplicate_files": 1,
+    "wasted_space_bytes": 80315246,
+    "percentage_duplicated": 10.0,
+    "groups": [
+        {
+            "hash": "398882beb89df4eb05ee3f804090d6a583c39778ff4983336570905f924d3113",
+            "size_bytes": 80315246,
+            "files": [
+                "/path/to/battery-report.html",
+                "/path/to/copy-of-battery-report.html"
+            ]
+        }
+    ]
+}
+```
+
+Reports are saved with timestamped filenames:
+
+```text
+duplicate_report_20260828_213015.json
+```
 
 ---
 
@@ -170,7 +224,7 @@ Run the tests with:
 
 Current result:
 
-    Ran 14 tests in 0.147s
+    Ran 14 tests in 0.100s
 
     OK
 
@@ -188,6 +242,8 @@ Current result:
     ├── LICENSE
     └── README.md
 
+JSON reports are generated at runtime and are not tracked in the repository (see `.gitignore`).
+
 ---
 
 ## 🛠️ Requirements
@@ -201,7 +257,7 @@ The application uses only Python's standard library.
 
 ## 📜 Version
 
-**Current Version: 1.1.0**
+**Current Version: 1.2.0**
 
 This version includes:
 
@@ -210,7 +266,9 @@ This version includes:
 * SHA-256 duplicate confirmation.
 * Command-line interface with `argparse`.
 * Version flag.
-* Detailed report with summary, wasted space, and percentages.
+* JSON report export (`--json`).
+* Configurable output directory (`--output`).
+* Detailed terminal report with summary, wasted space, and percentages.
 * Edge case handling (empty folders, permission errors, invalid paths).
 * Skips empty files, symlinks, and common system directories.
 * 14 unit tests covering all core functionality.
@@ -253,6 +311,12 @@ The project was developed incrementally through separate Git commits over severa
     Day 12 (Aug 24):
     feat: add CLI support with argparse and version flag
 
+    Day 14 (Aug 26):
+    docs: add project roadmap and guiding principles
+
+    Day 15 (Aug 27):
+    feat: add JSON report output and custom output directory
+
 This development history is intentionally preserved to show the actual evolution of the project.
 
 ---
@@ -261,11 +325,12 @@ This development history is intentionally preserved to show the actual evolution
 
 Potential future enhancements include:
 
-* Export reports to JSON or CSV
-* Add option to safely delete duplicates (with confirmation and dry-run)
+* Export reports to CSV format
 * Add progress indicator for large folders
 * Support excluding user-defined directories via CLI
-* Colorized terminal output
+* Support filtering by extension and minimum size
+* Parallel hashing for large directories
+* Safe quarantine and deletion (with dry-run and manifest)
 
 ---
 

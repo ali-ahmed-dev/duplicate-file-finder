@@ -2,7 +2,7 @@
 
 This document outlines the planned improvements and future roadmap for **Duplicate File Finder**.
 
-The current release (**v1.1.0**) is a read-only duplicate detection tool. It scans files, compares their sizes, calculates SHA-256 hashes when necessary, and reports detected duplicates without modifying files.
+The current release (**v1.2.0**) is a read-only duplicate detection tool. It scans files, compares their sizes, calculates SHA-256 hashes when necessary, and reports detected duplicates without modifying files. It can also export structured JSON reports.
 
 Future features should preserve the project's core principle:
 
@@ -16,7 +16,8 @@ These improvements focus on useful output, diagnostics, and practical CLI functi
 
 ### Output
 
-* [ ] Add JSON report output (`--json`) for automation and integration.
+* [x] Add JSON report output (`--json`) for automation and integration.
+* [x] Add configurable output directory (`--output`) for JSON reports.
 * [ ] Add CSV report output (`--csv`) for spreadsheet analysis.
 
 ### Diagnostics
@@ -111,14 +112,15 @@ These features may be considered if the project grows beyond local filesystem sc
 
 ## Project Roadmap
 
-| Version | Focus                                 | Status       |
-| ------- | ------------------------------------- | ------------ |
-| v1.0.0  | Initial duplicate detection           | ✅ Released   |
-| v1.0.1  | Unit tests and stability improvements | ✅ Released   |
-| v1.1.0  | CLI with `argparse`                   | ✅ Current    |
-| v1.2.0  | Output, diagnostics, and filters      | 🎯 Next      |
-| v1.3.0  | Reporting and usability improvements  | ⏳ Planned    |
-| v2.0.0  | Safe file management                  | 🔮 Long-term |
+| Version | Focus                                   | Status       |
+| ------- | --------------------------------------- | ------------ |
+| v1.0.0  | Initial duplicate detection             | ✅ Released   |
+| v1.0.1  | Unit tests and stability improvements   | ✅ Released   |
+| v1.1.0  | CLI with `argparse`                     | ✅ Released   |
+| v1.2.0  | JSON output and custom output directory | ✅ Current    |
+| v1.3.0  | CSV output, diagnostics, and filters    | 🎯 Next      |
+| v1.4.0  | Reporting and usability improvements    | ⏳ Planned    |
+| v2.0.0  | Safe file management                    | 🔮 Long-term |
 
 ---
 
