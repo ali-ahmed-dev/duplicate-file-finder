@@ -6,3 +6,5 @@ venv/
 env/
 .pytest_cache/
 *.log
+duplicate_report_*.json
+reports/

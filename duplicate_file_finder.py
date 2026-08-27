@@ -9,12 +9,14 @@ This is an educational project built with Python's standard library only.
 
 import argparse
 import hashlib
+import json
 from datetime import datetime
 from pathlib import Path
 
 
 # ===================== CONSTANTS =====================
 CHUNK_SIZE = 4096
+
 IGNORE_DIRS = {
     ".git",
     "__pycache__",
@@ -128,7 +130,7 @@ def calculate_file_hash(file: Path) -> str | None:
 
 
 def get_file_hash(
-    files_by_size: dict[int, list[Path]]
+    files_by_size: dict[int, list[Path]],
 ) -> dict[str, list[Path]]:
     """
     Calculate SHA-256 hashes for files with matching sizes.
@@ -160,7 +162,7 @@ def get_file_hash(
     return files_by_hash
 
 
-# ===================== REPORT GENERATION =====================
+# ===================== REPORT DATA =====================
 def calculate_total_size(files: list[Path]) -> int:
     """
     Calculate the total size of all files in bytes.
@@ -182,88 +184,167 @@ def calculate_total_size(files: list[Path]) -> int:
     return total
 
 
-def generate_report(
+def build_report_data(
+    folder: Path,
     files: list[Path],
     files_by_size: dict[int, list[Path]],
     files_by_hash: dict[str, list[Path]],
-) -> None:
+    scan_date: str,
+) -> dict:
     """
-    Generate and print the duplicate file report.
+    Build a structured dictionary with all report information.
 
     Args:
+        folder (Path): The scanned folder.
         files (list[Path]): All scanned files.
         files_by_size (dict[int, list[Path]]): Files grouped by size.
         files_by_hash (dict[str, list[Path]]): Files grouped by hash.
-    """
-    print(HEADER)
-    print("Scan Date:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    print("Total files scanned:", len(files))
+        scan_date (str): Timestamp of the scan.
 
+    Returns:
+        dict: Structured report data.
+    """
     total_size = calculate_total_size(files)
-    print("Total size:", total_size, "bytes")
 
     potential_duplicates = sum(
         1 for group in files_by_size.values() if len(group) > 1
     )
 
-    print("Potential duplicate groups by size:", potential_duplicates)
-
-    print("\n--- Duplicate Files by Hash ---")
-
-    has_duplicates = False
+    duplicate_groups = []
 
     for file_hash, duplicate_files in files_by_hash.items():
         if len(duplicate_files) <= 1:
             continue
 
-        has_duplicates = True
-
-        print("Hash:", file_hash)
-
-        for file in duplicate_files:
-            print("    ", file)
-
-    if not has_duplicates:
-        print("No duplicate files found.")
-
-    print(SUMMARY_HEADER)
-
-    duplicate_groups = sum(
-        1
-        for group in files_by_hash.values()
-        if len(group) > 1
-    )
-
-    duplicate_files = sum(
-        len(group) - 1
-        for group in files_by_hash.values()
-        if len(group) > 1
-    )
-
-    wasted_size = 0
-
-    for group in files_by_hash.values():
-        if len(group) <= 1:
-            continue
-
         try:
-            file_size = group[0].stat().st_size
-            wasted_size += file_size * (len(group) - 1)
+            file_size = duplicate_files[0].stat().st_size
         except OSError:
-            continue
+            file_size = 0
+
+        duplicate_groups.append(
+            {
+                "hash": file_hash,
+                "size_bytes": file_size,
+                "files": [str(file) for file in duplicate_files],
+            }
+        )
+
+    duplicate_group_count = len(duplicate_groups)
+
+    duplicate_file_count = sum(
+        len(group["files"]) - 1
+        for group in duplicate_groups
+    )
+
+    wasted_size = sum(
+        group["size_bytes"] * (len(group["files"]) - 1)
+        for group in duplicate_groups
+    )
 
     percentage = (
-        duplicate_files / len(files) * 100
+        duplicate_file_count / len(files) * 100
         if files
         else 0
     )
 
-    print("Duplicate groups:", duplicate_groups)
-    print("Duplicate files (extra copies):", duplicate_files)
-    print("Wasted space:", wasted_size, "bytes")
-    print("Percentage duplicated:", f"{percentage:.2f}%")
+    return {
+        "scan_date": scan_date,
+        "folder": str(folder),
+        "total_files": len(files),
+        "total_size_bytes": total_size,
+        "potential_duplicate_groups": potential_duplicates,
+        "duplicate_groups": duplicate_group_count,
+        "duplicate_files": duplicate_file_count,
+        "wasted_space_bytes": wasted_size,
+        "percentage_duplicated": round(percentage, 2),
+        "groups": duplicate_groups,
+    }
 
+
+# ===================== REPORT OUTPUT =====================
+def print_terminal_report(data: dict) -> None:
+    """
+    Print the human-readable report to the terminal.
+
+    Args:
+        data (dict): Structured report data.
+    """
+    print(HEADER)
+    print("Scan Date:", data["scan_date"])
+    print("Total files scanned:", data["total_files"])
+    print("Total size:", data["total_size_bytes"], "bytes")
+    print(
+        "Potential duplicate groups by size:",
+        data["potential_duplicate_groups"],
+    )
+
+    print("\n--- Duplicate Files by Hash ---")
+
+    if not data["groups"]:
+        print("No duplicate files found.")
+    else:
+        for group in data["groups"]:
+            print("Hash:", group["hash"])
+
+            for file in group["files"]:
+                print("    ", file)
+
+    print(SUMMARY_HEADER)
+    print("Duplicate groups:", data["duplicate_groups"])
+    print("Duplicate files (extra copies):", data["duplicate_files"])
+    print("Wasted space:", data["wasted_space_bytes"], "bytes")
+    print(
+        "Percentage duplicated:",
+        f"{data['percentage_duplicated']:.2f}%",
+    )
     print(FOOTER)
+
+
+def export_to_json(
+    data: dict,
+    output_dir: Path,
+    timestamp: datetime,
+) -> bool:
+    """
+    Export the report data to a JSON file.
+
+    Args:
+        data (dict): Structured report data.
+        output_dir (Path): Directory to save the JSON report.
+        timestamp (datetime): Timestamp used for the report filename.
+
+    Returns:
+        bool: True if the report was exported successfully,
+        otherwise False.
+    """
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+    except (PermissionError, OSError) as error:
+        print(
+            f"Error: Could not create output directory "
+            f"{output_dir}. {error}"
+        )
+        return False
+
+    filename = (
+        f"duplicate_report_{timestamp.strftime('%Y%m%d_%H%M%S')}.json"
+    )
+    report_path = output_dir / filename
+
+    try:
+        report_path.write_text(
+            json.dumps(data, indent=4, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except (PermissionError, OSError) as error:
+        print(
+            f"Error: Could not write JSON report "
+            f"to {report_path}. {error}"
+        )
+        return False
+
+    print(f"JSON report exported to {report_path}")
+    return True
 
 
 # ===================== ARGUMENT PARSER =====================
@@ -283,7 +364,8 @@ def create_parser() -> argparse.ArgumentParser:
 Examples:
   %(prog)s /path/to/folder
   %(prog)s "C:\\Users\\Username\\Documents"
-  %(prog)s ../downloads
+  %(prog)s . --json
+  %(prog)s /path/to/folder --json --output ./reports
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -294,9 +376,24 @@ Examples:
     )
 
     parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Export the report as a JSON file",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        help=(
+            "Directory to save the JSON report "
+            "(requires --json)"
+        ),
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
-        version="Duplicate File Finder v1.1.0",
+        version="Duplicate File Finder v1.2.0",
     )
 
     return parser
@@ -312,6 +409,9 @@ def main() -> int:
     """
     parser = create_parser()
     args = parser.parse_args()
+
+    if args.output and not args.json:
+        parser.error("--output requires --json")
 
     folder = Path(args.folder)
 
@@ -336,11 +436,32 @@ def main() -> int:
     files_by_size = get_file_size(files)
     files_by_hash = get_file_hash(files_by_size)
 
-    generate_report(
+    scan_timestamp = datetime.now()
+    scan_date = scan_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+    data = build_report_data(
+        folder,
         files,
         files_by_size,
         files_by_hash,
+        scan_date,
     )
+
+    print_terminal_report(data)
+
+    if args.json:
+        output_dir = (
+            Path(args.output)
+            if args.output
+            else Path.cwd()
+        )
+
+        if not export_to_json(
+            data,
+            output_dir,
+            scan_timestamp,
+        ):
+            return 1
 
     return 0
 
