@@ -2,9 +2,12 @@
 Unit tests for the Duplicate File Finder.
 """
 
+import json
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 import duplicate_file_finder
 
@@ -210,6 +213,138 @@ class TestCalculateTotalSize(unittest.TestCase):
     def test_total_size_empty_list(self):
         total = duplicate_file_finder.calculate_total_size([])
         self.assertEqual(total, 0)
+
+
+class TestBuildReportData(unittest.TestCase):
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_report_data_structure(self):
+        f1 = self.root / "a.txt"
+        f2 = self.root / "b.txt"
+        f1.write_text("duplicate", encoding="utf-8")
+        f2.write_text("duplicate", encoding="utf-8")
+
+        files = [f1, f2]
+        files_by_size = duplicate_file_finder.get_file_size(files)
+        files_by_hash = duplicate_file_finder.get_file_hash(files_by_size)
+
+        data = duplicate_file_finder.build_report_data(
+            self.root,
+            files,
+            files_by_size,
+            files_by_hash,
+            "2026-08-28 10:00:00",
+        )
+
+        self.assertEqual(data["total_files"], 2)
+        self.assertEqual(data["duplicate_groups"], 1)
+        self.assertEqual(data["duplicate_files"], 1)
+        self.assertEqual(data["scan_date"], "2026-08-28 10:00:00")
+        self.assertEqual(data["folder"], str(self.root))
+        self.assertEqual(len(data["groups"]), 1)
+
+    def test_report_data_no_duplicates(self):
+        f1 = self.root / "a.txt"
+        f2 = self.root / "b.txt"
+        f1.write_text("aaa", encoding="utf-8")
+        f2.write_text("bbb", encoding="utf-8")
+
+        files = [f1, f2]
+        files_by_size = duplicate_file_finder.get_file_size(files)
+        files_by_hash = duplicate_file_finder.get_file_hash(files_by_size)
+
+        data = duplicate_file_finder.build_report_data(
+            self.root,
+            files,
+            files_by_size,
+            files_by_hash,
+            "2026-08-28 10:00:00",
+        )
+
+        self.assertEqual(data["duplicate_groups"], 0)
+        self.assertEqual(data["duplicate_files"], 0)
+        self.assertEqual(data["wasted_space_bytes"], 0)
+        self.assertEqual(data["groups"], [])
+
+    def test_report_data_wasted_space(self):
+        f1 = self.root / "a.txt"
+        f2 = self.root / "b.txt"
+        f3 = self.root / "c.txt"
+        f1.write_text("12345", encoding="utf-8")
+        f2.write_text("12345", encoding="utf-8")
+        f3.write_text("12345", encoding="utf-8")
+
+        files = [f1, f2, f3]
+        files_by_size = duplicate_file_finder.get_file_size(files)
+        files_by_hash = duplicate_file_finder.get_file_hash(files_by_size)
+
+        data = duplicate_file_finder.build_report_data(
+            self.root,
+            files,
+            files_by_size,
+            files_by_hash,
+            "2026-08-28 10:00:00",
+        )
+
+        # 3 files of 5 bytes each, 2 extra copies = 10 bytes wasted
+        self.assertEqual(data["wasted_space_bytes"], 10)
+        self.assertEqual(data["duplicate_files"], 2)
+
+
+class TestExportToJson(unittest.TestCase):
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    @patch("builtins.print")
+    def test_export_creates_file(self, mock_print):
+        data = {"test": "value"}
+        output_dir = self.root / "reports"
+        timestamp = datetime(2026, 8, 28, 10, 0, 0)
+
+        result = duplicate_file_finder.export_to_json(
+            data, output_dir, timestamp
+        )
+
+        self.assertTrue(result)
+        files = list(output_dir.glob("*.json"))
+        self.assertEqual(len(files), 1)
+
+    @patch("builtins.print")
+    def test_export_content_is_valid_json(self, mock_print):
+        data = {"total_files": 10, "groups": []}
+        output_dir = self.root / "reports"
+        timestamp = datetime(2026, 8, 28, 10, 0, 0)
+
+        duplicate_file_finder.export_to_json(data, output_dir, timestamp)
+
+        files = list(output_dir.glob("*.json"))
+        loaded = json.loads(files[0].read_text(encoding="utf-8"))
+        self.assertEqual(loaded["total_files"], 10)
+
+    @patch("builtins.print")
+    def test_export_filename_format(self, mock_print):
+        data = {"test": "value"}
+        output_dir = self.root / "reports"
+        timestamp = datetime(2026, 8, 28, 10, 30, 45)
+
+        duplicate_file_finder.export_to_json(data, output_dir, timestamp)
+
+        files = list(output_dir.glob("*.json"))
+        self.assertEqual(
+            files[0].name,
+            "duplicate_report_20260828_103045.json",
+        )
 
 
 if __name__ == "__main__":

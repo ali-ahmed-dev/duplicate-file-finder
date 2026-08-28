@@ -7,8 +7,8 @@ Built with Python's standard library, with a focus on **reliability, memory effi
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Tests](https://img.shields.io/badge/Tests-14%20Passed-brightgreen)
-![Version](https://img.shields.io/badge/Version-1.2.0-orange)
+![Tests](https://img.shields.io/badge/Tests-20%20Passed-brightgreen)
+![Version](https://img.shields.io/badge/Version-1.2.1-orange)
 
 ---
 
@@ -33,7 +33,7 @@ Built with Python's standard library, with a focus on **reliability, memory effi
 * Command-line interface (CLI) powered by `argparse`.
 * Version flag (`--version`).
 * Type hints and comprehensive docstrings.
-* 14 unit tests covering all core functionality.
+* 20 unit tests covering all core functionality.
 * Uses only Python's **standard library**.
 
 ---
@@ -203,7 +203,7 @@ duplicate_report_20260828_213015.json
 
 ## 🧪 Tests
 
-The project includes **14 automated unit tests** using Python's built-in `unittest` framework.
+The project includes **20 automated unit tests** using Python's built-in `unittest` framework.
 
 The tests cover:
 
@@ -217,6 +217,8 @@ The tests cover:
 * Same-size different-content handling
 * Ignoring single-file groups
 * Total size calculation
+* Report data construction (structure, no duplicates, wasted space)
+* JSON export (file creation, valid content, filename format)
 
 Run the tests with:
 
@@ -224,7 +226,7 @@ Run the tests with:
 
 Current result:
 
-    Ran 14 tests in 0.100s
+    Ran 20 tests in 0.167s
 
     OK
 
@@ -257,7 +259,7 @@ The application uses only Python's standard library.
 
 ## 📜 Version
 
-**Current Version: 1.2.0**
+**Current Version: 1.2.1**
 
 This version includes:
 
@@ -271,7 +273,7 @@ This version includes:
 * Detailed terminal report with summary, wasted space, and percentages.
 * Edge case handling (empty folders, permission errors, invalid paths).
 * Skips empty files, symlinks, and common system directories.
-* 14 unit tests covering all core functionality.
+* 20 unit tests covering all core functionality.
 * Type hints and docstrings.
 
 ---
@@ -316,6 +318,9 @@ The project was developed incrementally through separate Git commits over severa
 
     Day 15 (Aug 27):
     feat: add JSON report output and custom output directory
+
+    Day 16 (Aug 28):
+    test: expand test suite to 20 tests covering report and JSON export
 
 This development history is intentionally preserved to show the actual evolution of the project.
 
