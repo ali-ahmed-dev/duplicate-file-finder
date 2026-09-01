@@ -1,4 +1,3 @@
-```markdown
 # Duplicate File Finder
 
 A Python CLI tool that scans folders recursively and detects duplicate files by comparing file size first, then SHA-256 hash to confirm exact matches.
