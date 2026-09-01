@@ -395,7 +395,7 @@ Examples:
     parser.add_argument(
         "--version",
         action="version",
-        version="Duplicate File Finder v1.2.0",
+        version="Duplicate File Finder v1.2.2",
     )
 
     return parser

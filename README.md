@@ -1,4 +1,4 @@
-
+```markdown
 # Duplicate File Finder
 
 A Python CLI tool that scans folders recursively and detects duplicate files by comparing file size first, then SHA-256 hash to confirm exact matches.
@@ -8,7 +8,8 @@ Built with Python's standard library, with a focus on **reliability, memory effi
 ![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-20%20Passed-brightgreen)
-![Version](https://img.shields.io/badge/Version-1.2.1-orange)
+![CI](https://github.com/ali-ahmed-dev/duplicate-file-finder/actions/workflows/test.yml/badge.svg)
+![Version](https://img.shields.io/badge/Version-1.2.2-orange)
 
 ---
 
@@ -34,6 +35,7 @@ Built with Python's standard library, with a focus on **reliability, memory effi
 * Version flag (`--version`).
 * Type hints and comprehensive docstrings.
 * 20 unit tests covering all core functionality.
+* **Automated testing** via GitHub Actions (Python 3.8 → 3.13).
 * Uses only Python's **standard library**.
 
 ---
@@ -232,10 +234,25 @@ Current result:
 
 ---
 
+## ⚙️ Continuous Integration
+
+Tests are automatically run on every push and pull request to `main` via **GitHub Actions**.
+
+The workflow tests the project against **six Python versions**: 3.8, 3.9, 3.10, 3.11, 3.12, and 3.13.
+
+The workflow file is located at:
+
+    .github/workflows/test.yml
+
+---
+
 ## 📁 Project Structure
 
     duplicate-file-finder/
     │
+    ├── .github/
+    │   └── workflows/
+    │       └── test.yml
     ├── duplicate_file_finder.py
     ├── tests/
     │   ├── __init__.py
@@ -259,7 +276,7 @@ The application uses only Python's standard library.
 
 ## 📜 Version
 
-**Current Version: 1.2.1**
+**Current Version: 1.2.2**
 
 This version includes:
 
@@ -275,6 +292,7 @@ This version includes:
 * Skips empty files, symlinks, and common system directories.
 * 20 unit tests covering all core functionality.
 * Type hints and docstrings.
+* Automated CI/CD via GitHub Actions (Python 3.8 → 3.13).
 
 ---
 
@@ -321,6 +339,11 @@ The project was developed incrementally through separate Git commits over severa
 
     Day 16 (Aug 28):
     test: expand test suite to 20 tests covering report and JSON export
+
+    Day 20 (Sep 1):
+    ci: add GitHub Actions workflow for automated testing
+            ↓
+    fix: add __future__ annotations for Python 3.8 compatibility
 
 This development history is intentionally preserved to show the actual evolution of the project.
 

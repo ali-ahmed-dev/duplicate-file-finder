@@ -2,7 +2,7 @@
 
 This document outlines the planned improvements and future roadmap for **Duplicate File Finder**.
 
-The current release (**v1.2.0**) is a read-only duplicate detection tool. It scans files, compares their sizes, calculates SHA-256 hashes when necessary, and reports detected duplicates without modifying files. It can also export structured JSON reports.
+The current release (**v1.2.2**) is a read-only duplicate detection tool. It scans files, compares their sizes, calculates SHA-256 hashes when necessary, and reports detected duplicates without modifying files. It can also export structured JSON reports and runs automated tests via GitHub Actions.
 
 Future features should preserve the project's core principle:
 
@@ -51,8 +51,9 @@ These improvements focus on usability and reporting.
 
 ### Quality
 
-* [ ] Expand unit test coverage as new features are added.
+* [x] Expand unit test coverage as new features are added.
 * [ ] Add CLI-specific tests for arguments and exit codes.
+* [x] Add automated testing via GitHub Actions.
 
 ---
 
@@ -117,7 +118,9 @@ These features may be considered if the project grows beyond local filesystem sc
 | v1.0.0  | Initial duplicate detection             | ✅ Released   |
 | v1.0.1  | Unit tests and stability improvements   | ✅ Released   |
 | v1.1.0  | CLI with `argparse`                     | ✅ Released   |
-| v1.2.0  | JSON output and custom output directory | ✅ Current    |
+| v1.2.0  | JSON output and custom output directory | ✅ Released   |
+| v1.2.1  | Expanded test suite (20 tests)          | ✅ Released   |
+| v1.2.2  | GitHub Actions CI                       | ✅ Current    |
 | v1.3.0  | CSV output, diagnostics, and filters    | 🎯 Next      |
 | v1.4.0  | Reporting and usability improvements    | ⏳ Planned    |
 | v2.0.0  | Safe file management                    | 🔮 Long-term |
