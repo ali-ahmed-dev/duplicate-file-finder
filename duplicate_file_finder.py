@@ -6,12 +6,14 @@ by comparing file size first, then SHA-256 hash to confirm exact matches.
 
 This is an educational project built with Python's standard library only.
 """
-
+from __future__ import annotations
+from datetime import datetime
+from pathlib import Path
 import argparse
 import hashlib
 import json
-from datetime import datetime
-from pathlib import Path
+
+
 
 
 # ===================== CONSTANTS =====================
