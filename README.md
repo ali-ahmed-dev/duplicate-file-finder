@@ -8,7 +8,7 @@ Built with Python's standard library, with a focus on **reliability, memory effi
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-20%20Passed-brightgreen)
 ![CI](https://github.com/ali-ahmed-dev/duplicate-file-finder/actions/workflows/test.yml/badge.svg)
-![Version](https://img.shields.io/badge/Version-1.2.2-orange)
+![Version](https://img.shields.io/badge/Version-1.3.0-orange)
 
 ---
 
@@ -221,15 +221,34 @@ The tests cover:
 * Report data construction (structure, no duplicates, wasted space)
 * JSON export (file creation, valid content, filename format)
 
-Run the tests with:
+### Run Tests
 
-    python -m unittest discover -s tests -t . -v
+**Option 1: Using unittest (built-in)**
 
-Current result:
+```bash
+python -m unittest discover -s tests -t . -v
+```
 
-    Ran 20 tests in 0.167s
+**Option 2: Using pytest (recommended)**
 
-    OK
+```bash
+pip install pytest
+pytest tests/ -v
+```
+
+### Current Result
+
+Both methods pass all 20 tests:
+
+```text
+Ran 20 tests in 0.277s
+
+OK
+```
+
+```text
+20 passed in 0.39s
+```
 
 ---
 
@@ -247,18 +266,20 @@ The workflow file is located at:
 
 ## 📁 Project Structure
 
-    duplicate-file-finder/
-    │
-    ├── .github/
-    │   └── workflows/
-    │       └── test.yml
-    ├── duplicate_file_finder.py
-    ├── tests/
-    │   ├── __init__.py
-    │   └── test_duplicate_file_finder.py
-    ├── .gitignore
-    ├── LICENSE
-    └── README.md
+duplicate-file-finder/
+│
+├── .github/
+│   └── workflows/
+│       └── test.yml
+├── duplicate_file_finder.py
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   └── test_duplicate_file_finder.py
+├── pytest.ini
+├── .gitignore
+├── LICENSE
+└── README.md
 
 JSON reports are generated at runtime and are not tracked in the repository (see `.gitignore`).
 
@@ -267,15 +288,20 @@ JSON reports are generated at runtime and are not tracked in the repository (see
 ## 🛠️ Requirements
 
 * Python 3.x
-* No external Python packages are required.
+* No external Python packages are required for the application.
+* The application uses only Python's standard library.
 
-The application uses only Python's standard library.
+For pytest-based testing, install `pytest` separately:
+
+```bash
+pip install pytest
+```
 
 ---
 
 ## 📜 Version
 
-**Current Version: 1.2.2**
+**Current Version: 1.3.0**
 
 This version includes:
 
@@ -292,6 +318,7 @@ This version includes:
 * 20 unit tests covering all core functionality.
 * Type hints and docstrings.
 * Automated CI/CD via GitHub Actions (Python 3.8 → 3.13).
+* pytest support with `conftest.py` and `pytest.ini`.
 
 ---
 
@@ -343,6 +370,11 @@ The project was developed incrementally through separate Git commits over severa
     ci: add GitHub Actions workflow for automated testing
             ↓
     fix: add __future__ annotations for Python 3.8 compatibility
+
+    Day 33 (Oct 3):
+    feat: add pytest support with conftest.py and pytest.ini
+            ↓
+    chore: bump version to v1.3.0
 
 This development history is intentionally preserved to show the actual evolution of the project.
 

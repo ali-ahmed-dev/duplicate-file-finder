@@ -39,6 +39,7 @@ These improvements focus on usability and reporting.
 
 ### CLI
 
+* [x] Add `--version` flag for displaying the current version.
 * [ ] Add progress indication for large scans.
 * [ ] Support scanning multiple folders in one run.
 * [ ] Add a summary-only output mode.
@@ -52,8 +53,9 @@ These improvements focus on usability and reporting.
 ### Quality
 
 * [x] Expand unit test coverage as new features are added.
-* [ ] Add CLI-specific tests for arguments and exit codes.
 * [x] Add automated testing via GitHub Actions.
+* [x] Add pytest support with `conftest.py` and `pytest.ini`.
+* [ ] Add CLI-specific tests for arguments and exit codes.
 
 ---
 
@@ -113,17 +115,18 @@ These features may be considered if the project grows beyond local filesystem sc
 
 ## Project Roadmap
 
-| Version | Focus                                   | Status       |
-| ------- | --------------------------------------- | ------------ |
-| v1.0.0  | Initial duplicate detection             | ✅ Released   |
-| v1.0.1  | Unit tests and stability improvements   | ✅ Released   |
-| v1.1.0  | CLI with `argparse`                     | ✅ Released   |
-| v1.2.0  | JSON output and custom output directory | ✅ Released   |
-| v1.2.1  | Expanded test suite (20 tests)          | ✅ Released   |
-| v1.2.2  | GitHub Actions CI                       | ✅ Current    |
-| v1.3.0  | CSV output, diagnostics, and filters    | 🎯 Next      |
-| v1.4.0  | Reporting and usability improvements    | ⏳ Planned    |
-| v2.0.0  | Safe file management                    | 🔮 Long-term |
+| Version | Focus                                       | Status       |
+| ------- | ------------------------------------------- | ------------ |
+| v1.0.0  | Initial duplicate detection                 | ✅ Released   |
+| v1.0.1  | Unit tests and stability improvements       | ✅ Released   |
+| v1.1.0  | CLI with `argparse`                         | ✅ Released   |
+| v1.2.0  | JSON output and custom output directory     | ✅ Released   |
+| v1.2.1  | Expanded test suite (20 tests)              | ✅ Released   |
+| v1.2.2  | GitHub Actions CI                           | ✅ Released   |
+| v1.3.0  | pytest support and `--version` flag         | ✅ Current    |
+| v1.4.0  | CSV output, diagnostics, and filters        | 🎯 Next      |
+| v1.5.0  | Reporting and usability improvements        | ⏳ Planned    |
+| v2.0.0  | Safe file management                        | 🔮 Long-term |
 
 ---
 
